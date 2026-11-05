@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { casasVencedoras, sortearCartela } from "@/lib/frases";
+import { buscarFrases, casasVencedoras, sortearCartela } from "@/lib/frases";
 import { supabase } from "@/lib/supabase";
 
 const CHAVE = "bingo-oficina-v1";
@@ -57,6 +57,7 @@ export default function Bingo() {
   const [apelido, setApelido] = useState("");
   const [envio, setEnvio] = useState<Envio>("parado");
   const [avisoAberto, setAvisoAberto] = useState(false);
+  const [entrando, setEntrando] = useState(false);
 
   useEffect(() => {
     try {
@@ -67,15 +68,18 @@ export default function Bingo() {
     }
   }, [jogo]);
 
-  function entrar(e: React.FormEvent) {
+  async function entrar(e: React.FormEvent) {
     e.preventDefault();
     const nome = apelido.trim().slice(0, 30);
-    if (!nome) return;
+    if (!nome || entrando) return;
+    setEntrando(true);
+    const lista = await buscarFrases();
+    setEntrando(false);
     const id = novoId();
     setJogo({
       id,
       apelido: nome,
-      cartela: sortearCartela(),
+      cartela: sortearCartela(lista),
       marcadas: Array(16).fill(false),
       bingoSalvo: false,
     });
@@ -107,9 +111,10 @@ export default function Bingo() {
     }
   }
 
-  function novaCartela() {
+  async function novaCartela() {
     if (!jogo) return;
-    setJogo({ ...jogo, cartela: sortearCartela(), marcadas: Array(16).fill(false), bingoSalvo: false });
+    const lista = await buscarFrases();
+    setJogo({ ...jogo, cartela: sortearCartela(lista), marcadas: Array(16).fill(false), bingoSalvo: false });
     setEnvio("parado");
     setAvisoAberto(false);
   }
@@ -142,9 +147,9 @@ export default function Bingo() {
         <button
           type="submit"
           className="mt-4 w-full rounded-xl bg-amber-300 py-3 font-bold text-slate-950 transition hover:bg-amber-200 disabled:opacity-50"
-          disabled={!apelido.trim()}
+          disabled={!apelido.trim() || entrando}
         >
-          Pegar minha cartela
+          {entrando ? "Sorteando…" : "Pegar minha cartela"}
         </button>
         <p className="mt-3 text-xs text-slate-400">
           Você recebe 16 frases sorteadas. Marque quando acontecerem na oficina.

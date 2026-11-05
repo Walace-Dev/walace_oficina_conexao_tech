@@ -31,13 +31,22 @@ export const FRASES: string[] = [
   "alguém comemorou o deploy",
 ];
 
-export function sortearCartela(): string[] {
-  const copia = [...FRASES];
+export function sortearCartela(lista: string[] = FRASES): string[] {
+  const copia = [...(lista.length >= 16 ? lista : FRASES)];
   for (let i = copia.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1));
     [copia[i], copia[j]] = [copia[j], copia[i]];
   }
   return copia.slice(0, 16);
+}
+
+// Lê a lista atual do Supabase. Se falhar ou tiver menos de 16, usa a lista padrão.
+export async function buscarFrases(): Promise<string[]> {
+  const { supabase } = await import("./supabase");
+  if (!supabase) return FRASES;
+  const { data, error } = await supabase.from("frases").select("texto").order("id");
+  if (error || !data || data.length < 16) return FRASES;
+  return data.map((f) => f.texto as string);
 }
 
 const N = 4;
