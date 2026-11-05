@@ -1,5 +1,8 @@
 # Bingo da Oficina
 
+## Link
+https://bingo-oficina-ivory.vercel.app (projeto Vercel `bingo-oficina`)
+
 ## Equipe
 - Engenharia da Computação (UniSapiens)
 - Sistemas da Informação (UniSapiens)
